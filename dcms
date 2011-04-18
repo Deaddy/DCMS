@@ -1,0 +1,79 @@
+#!/usr/bin/python
+
+import cgi
+import cgitb
+import os
+from sys import argv
+
+
+cgitb.enable()
+
+class Dcms():
+
+	def __init__(self):
+		self.path = os.environ["PATH_INFO"]
+		self.content = self.processUrl()
+		print "Content-type: text/html"
+		print ""
+		print "<html>"
+		print "<head><title>Deaddy.net</title></head>"
+		print "<body>"
+		print self.content
+		print "</body></html>"
+		pass
+
+	def processUrl(self):
+		self.arguments = self.path.strip("/").split("/")
+		if self.arguments[0] == "news":
+			c = News()
+			return c.getContent()
+		elif self.arguments[0] == "imprint":
+			c = Imprint()
+			return c.getContent()
+		else:
+			return "Hello, World!"
+		pass
+
+class RstParser():
+	
+	def parse(self, text):
+		string = ""
+		for line in text.split("\n"):
+			if line and line[0] == ":":
+				string += "<h2>"
+				string += line[1:]
+				string += "</h2>"
+			else:
+				string += line
+
+		return string
+
+class Plugin():
+	name = None
+	text = None
+	
+	def getContent(self): return self.text
+
+class News(Plugin):
+	name = "News"
+	text = "default"
+
+class Imprint(Plugin):
+	name = "Imprint"
+	text = "Fi"
+
+	def __init__(self):
+		rst = RstParser()
+		try:
+			f = open("news", "r")
+			t = f.read()
+			self.text = rst.parse(t)
+			f.close()
+		except IOError as e:
+			self.text = e
+
+			pass
+
+
+if __name__=="__main__":
+	cms = Dcms()
