@@ -3,36 +3,72 @@
 import cgi
 import cgitb
 import os
-from sys import argv
+import imp
+from sys import argv,stderr
 
 
 cgitb.enable()
 
+pluginDir = "plugins/"
+dataDir = "data/"
+
 class Dcms():
+	content = ""
 
 	def __init__(self):
 		self.path = os.environ["PATH_INFO"]
-		self.content = self.processUrl()
+		self.loadPlugins()
+		self.processUrl()
+		self.loadNavigation()
+
 		print "Content-type: text/html"
 		print ""
 		print "<html>"
 		print "<head><title>Deaddy.net</title></head>"
 		print "<body>"
+		print self.navigation
 		print self.content
+		print ""
+		print self.path
 		print "</body></html>"
 		pass
 
 	def processUrl(self):
 		self.arguments = self.path.strip("/").split("/")
-		if self.arguments[0] == "news":
-			c = News()
-			return c.getContent()
-		elif self.arguments[0] == "imprint":
-			c = Imprint()
-			return c.getContent()
+
+		if self.arguments:
+			for plugin in self.plugins:
+				if self.arguments[0].lower() == plugin.name.lower():
+					c = plugin(self.arguments[1:])
+					self.content = c.getContent()
+					break
+
 		else:
 			return "Hello, World!"
-		pass
+
+	def loadPlugins(self):
+		self.plugins = []
+		pluginFiles = filter(lambda x: x[-3:] == ".py", os.listdir(pluginDir))
+		for fn in pluginFiles:
+			f = fn[:-3]
+			clsname = f[0].upper() + f[1:]
+			info = imp.find_module(f, [pluginDir])
+			module = imp.load_module(f, info[0], info[1], info[2])
+			info[0].close()
+			cls = getattr(module, clsname)
+			self.plugins.append(cls)
+
+	def loadNavigation(self):
+		self.navigation = "<ul>"
+		for plugin in self.plugins:
+			self.navigation += "<li><a href=\""
+			self.navigation += "/" + plugin.name.lower()
+			self.navigation += "\">"
+			self.navigation += plugin.name
+			self.navigation += "</a></li>"
+		self.navigation += "</ul>"
+
+	
 
 class RstParser():
 	
@@ -51,29 +87,15 @@ class RstParser():
 class Plugin():
 	name = None
 	text = None
+	datadir = dataDir
+
+	def __init__(self, args=[]): pass
 	
 	def getContent(self): return self.text
 
 class News(Plugin):
 	name = "News"
 	text = "default"
-
-class Imprint(Plugin):
-	name = "Imprint"
-	text = "Fi"
-
-	def __init__(self):
-		rst = RstParser()
-		try:
-			f = open("news", "r")
-			t = f.read()
-			self.text = rst.parse(t)
-			f.close()
-		except IOError as e:
-			self.text = e
-
-			pass
-
 
 if __name__=="__main__":
 	cms = Dcms()

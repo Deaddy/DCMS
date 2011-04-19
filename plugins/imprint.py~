@@ -1,0 +1,20 @@
+#!/usr/bin/python
+
+from dcms import Plugin, RstParser
+
+class Imprint(Plugin):
+	name = "Imprint"
+	text = "Fi"
+
+	def __init__(self,args=[]):
+		rst = RstParser()
+		try: 
+			f = open("news", "r")
+			t = f.read()
+			self.text = rst.parse(t)
+			f.close()
+		except IOError as e:
+			self.text = e
+
+		pass
+

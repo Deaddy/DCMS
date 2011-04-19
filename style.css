@@ -1,0 +1,56 @@
+a:active, a:link, a {
+  color:#003366;
+  text-decoration:none;
+}
+
+a:hover {
+  color:#003366;
+  text-decoration:underline;
+}
+
+.Body {
+  background:#e5e5e5;
+}
+
+.Page {
+  padding:20px 10px 20px 10px;
+}
+
+.Page {
+  background:white;
+}
+
+.Navigation {
+  padding-left:20px;
+  padding-right:20px;
+}
+
+.Navigation {
+  color:#003366;
+  font:small sans-serif;
+  line-height:150%;
+}
+
+.Navigation h1 {
+  text-transform:uppercase;
+  color:#444444;
+  font:small sans-serif;
+  letter-spacing:2px;
+}
+
+.Main {
+    font-weight:normal;
+    text-decoration:none;
+    color:#003366;
+}
+
+.Main p {
+    color:#000000;
+}
+
+.Main h3 {
+    color:#003366;
+}
+
+.Main h4 { border-bottom:1px solid black; padding-bottom:4px; margin:0px; }
+
