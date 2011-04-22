@@ -59,6 +59,7 @@ body {
 
 .main h2 {
     color:#003366;
+	 border-bottom: 1px solid black; padding-bottom:0.1em; margin-bottom:0.2em;
 }
 
 .pages {
@@ -80,5 +81,4 @@ body {
 	padding: 0.5em;
 }
 
-.main h4 { border-bottom:1px solid black; padding-bottom:4px; margin:0px; }
 
