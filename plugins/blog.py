@@ -125,9 +125,11 @@ class Blog(Plugin):
 		self.text += "<h2>All posts in chronologically order:</h2>"
 		self.text += '<ol class="toc">'
 
+		i = 1
 		for post in self.posts:
-			self.text += '<li><a href="/blog/id/' + str(post.pid) + '">'
+			self.text += '<li><a href="/blog/id/' + str(i) + '">'
 			self.text += post.title + '</a></li>'
+			i += 1
 
 		self.text += '</ol>'
 
