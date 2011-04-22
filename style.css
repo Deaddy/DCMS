@@ -49,12 +49,35 @@ body {
 	padding: 1em;
 }
 
+.main img {
+	padding: 1em;
+}
+
 .main p {
     color:#000000;
 }
 
 .main h2 {
     color:#003366;
+}
+
+.pages {
+	font-size: small;
+	text-align: right;
+	padding: 1em;
+}
+
+.pages ul {
+	display:inline;
+	list-style: none;
+	margin 0;
+	padding: 0
+}
+
+.pages li {
+	display:inline;
+	margin: 0;
+	padding: 0.5em;
 }
 
 .main h4 { border-bottom:1px solid black; padding-bottom:4px; margin:0px; }

@@ -24,7 +24,7 @@ class Dcms():
 		print """ <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
 <html xmlns="http://www.w3.org/1999/xhtml">
-<link rel="stylesheet" type="text/css" href="style.css" />
+<link rel="stylesheet" type="text/css" href="/style.css" />
 <html>
 	<head><title>Deaddy.net</title></head>
 	<body>
@@ -68,7 +68,7 @@ class Dcms():
 <ul>"""
 		for plugin in self.plugins.values():
 			self.navigation += "<li><a href=\""
-			self.navigation += plugin.name.lower()
+			self.navigation += "/" + plugin.name.lower()
 			self.navigation += "\">"
 			self.navigation += plugin.name
 			self.navigation += "</a></li>"
@@ -80,11 +80,13 @@ class RstParser():
 	
 	def parse(self, text):
 		tokens = [
-				(":title\s*\\n([^\\n]*)", self.__title),
+				(":title\s*([^\n]*)", self.__title),
+				(":date\s*([^\n]*)", self.__date),
 				("\"([^\"]+)\":\"([^\"]+)\"", self.__link),
-				("_([^\_]+)_", self.__italic),
+				("\s_([^\_]+)_([^\w])", self.__italic),
 				("\n(\.p)", self.__paragraph),
-				("(\n\n)", self.__paragraph),
+				("(\np\.)", self.__paragraph),
+				("img:\"([^\"]+)\"", self.__img),
 		]
 
 		for token in tokens:
@@ -95,11 +97,17 @@ class RstParser():
 	def __title(self, matchobject):
 		return "<h2>" + matchobject.group(1) + "</h2>\n"
 
+	def __date(self, matchobject):
+		return "<i>" + matchobject.group(1) + "</i><br />\n"
+
 	def __link(self, m):
 		return "<a href=\"" + m.group(1) + "\">" + m.group(2) + "</a>"
 
+	def __img(self, m):
+		return "<br /><img src=\"" + m.group(1) + "\"/><br />" 
+
 	def __italic(self, m):
-		return "<i>" + m.group(1) + "</i>"
+		return " <i>" + m.group(1) + "</i>" + m.group(2)
 
 	def __paragraph(self, m):
 		if m.group(1) == ".p":
