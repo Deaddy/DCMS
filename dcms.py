@@ -1,9 +1,6 @@
 #!/usr/bin/python
 
-import cgi
-import cgitb
-import os
-import imp
+import cgi, cgitb, os, imp, re
 from sys import argv,stderr
 
 
@@ -14,6 +11,7 @@ dataDir = "data/"
 
 class Dcms():
 	content = ""
+	default_plugin = "blog"
 
 	def __init__(self):
 		self.path = os.environ["PATH_INFO"]
@@ -40,18 +38,20 @@ class Dcms():
 	def processUrl(self):
 		self.arguments = self.path.strip("/").split("/")
 
-		if self.arguments:
-			for plugin in self.plugins:
-				if self.arguments[0].lower() == plugin.name.lower():
-					c = plugin(self.arguments[1:])
-					self.content = c.getContent()
-					break
+		if self.arguments and self.arguments[0]:
+			self.content = "fuuu"
+			if self.plugins.has_key(self.arguments[0].lower()):
+				c = self.plugins[self.arguments[0].lower()](self.arguments[1:])
+				self.content = c.getContent()
 
 		else:
-			return "Hello, World!"
+			c = self.plugins[self.default_plugin]()
+			self.content = c.getContent()
+
+
 
 	def loadPlugins(self):
-		self.plugins = []
+		self.plugins = {}
 		pluginFiles = filter(lambda x: x[-3:] == ".py", os.listdir(pluginDir))
 		for fn in pluginFiles:
 			f = fn[:-3]
@@ -60,13 +60,13 @@ class Dcms():
 			module = imp.load_module(f, info[0], info[1], info[2])
 			info[0].close()
 			cls = getattr(module, clsname)
-			self.plugins.append(cls)
+			self.plugins[clsname.lower()] = cls
 
 	def loadNavigation(self):
 		self.navigation = """
 <h1>Contents</h1>
 <ul>"""
-		for plugin in self.plugins:
+		for plugin in self.plugins.values():
 			self.navigation += "<li><a href=\""
 			self.navigation += plugin.name.lower()
 			self.navigation += "\">"
@@ -79,16 +79,33 @@ class Dcms():
 class RstParser():
 	
 	def parse(self, text):
-		string = ""
-		for line in text.split("\n"):
-			if line and line[0] == ":":
-				string += "<h2>"
-				string += line[1:]
-				string += "</h2>"
-			else:
-				string += line
+		tokens = [
+				(":title\s*\\n([^\\n]*)", self.__title),
+				("\"([^\"]+)\":\"([^\"]+)\"", self.__link),
+				("_([^\_]+)_", self.__italic),
+				("\n(\.p)", self.__paragraph),
+				("(\n\n)", self.__paragraph),
+		]
 
-		return string
+		for token in tokens:
+			text = re.sub(token[0], token[1], text)
+
+		return text
+
+	def __title(self, matchobject):
+		return "<h2>" + matchobject.group(1) + "</h2>\n"
+
+	def __link(self, m):
+		return "<a href=\"" + m.group(1) + "\">" + m.group(2) + "</a>"
+
+	def __italic(self, m):
+		return "<i>" + m.group(1) + "</i>"
+
+	def __paragraph(self, m):
+		if m.group(1) == ".p":
+			return "<p>"
+		else:
+			return "\n</p>"
 
 class Plugin():
 	name = None
@@ -98,10 +115,6 @@ class Plugin():
 	def __init__(self, args=[]): pass
 	
 	def getContent(self): return self.text
-
-class News(Plugin):
-	name = "News"
-	text = "default"
 
 if __name__=="__main__":
 	cms = Dcms()

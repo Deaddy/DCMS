@@ -1,2 +1,14 @@
-:Testsystem
-Lorem ipsum wollolo
+:title 
+Example of the blog plugin
+.p
+You can create paragraphs with _.p_, italics and
+"http://example.com":"Hyperlinks". I think there could be a better parser
+plugin, however.
+
+:title
+Another title.
+.p
+I'd like to implement something like :date
+
+
+
