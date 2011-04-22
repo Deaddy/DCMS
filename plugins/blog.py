@@ -14,7 +14,7 @@ class Blog(Plugin):
 			self.populate_posts(f)
 			f.close()
 
-		except IOError as e:
+		except IOError, e:
 			self.text = e
 
 		if not self.text and self.posts:

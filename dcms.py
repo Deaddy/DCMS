@@ -53,6 +53,7 @@ class Dcms():
 	def loadPlugins(self):
 		self.plugins = {}
 		pluginFiles = filter(lambda x: x[-3:] == ".py", os.listdir(pluginDir))
+		pluginFiles.sort()
 		for fn in pluginFiles:
 			f = fn[:-3]
 			clsname = f[0].upper() + f[1:]
