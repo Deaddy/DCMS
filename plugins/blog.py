@@ -75,10 +75,10 @@ class Blog(Plugin):
 			pages = (len(self.posts)+1)/self.page_limit
 			self.text += """<div class="pages">Pages:<ul>"""
 			if p != 1:
-				self.text += '<li><a href="/blog/page/1">&lt;&lt;<a></li>'
+				self.text += '<li><a href="/blog/page/1">&lt;&lt;</a></li>'
 				self.text += '<li><a href="/blog/page/'
 				self.text += str(p-1)
-				self.text += '">&lt;<a></li>'
+				self.text += '">&lt;</a></li>'
 
 
 			for x in range(pages+1)[1:]:
@@ -92,10 +92,10 @@ class Blog(Plugin):
 			if p < pages:
 				self.text += '<li><a href="/blog/page/'
 				self.text += str(p+1)
-				self.text += '">&gt;<a></li>'
+				self.text += '">&gt;</a></li>'
 				self.text += '<li><a href="/blog/page/'
 				self.text += str(pages)
-				self.text += '">&gt;&gt;<a></li>'
+				self.text += '">&gt;&gt;</a></li>'
 
 			self.text += '<li><a href="/blog/all">all posts</a></li>'
 			self.text += """</ul></div>"""
