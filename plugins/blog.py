@@ -113,6 +113,7 @@ A small blog about system administration, code and mathematics.
 			for post in reversed(self.posts):
 				if first <= i and i < last:
 					self.text += '<h2>' + post.title + '</h2>\n'
+					self.text += "<i>" + post.date + "</i>\n"
 					self.text += rst.parse(post.text)
 				else:
 					pass
@@ -155,6 +156,7 @@ A small blog about system administration, code and mathematics.
 			return
 
 		self.text += "<h2>" +self.posts[pid-1].title + "</h2>\n"
+		self.text += "<i>" + self.posts[pid-1].date + "</i>\n"
 		self.text += rst.parse(self.posts[pid-1].text)
 		self.text += """<div class="pages"><ul>"""
 
