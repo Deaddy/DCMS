@@ -3,6 +3,7 @@
 
 import cgi, cgitb, os, imp, re
 from sys import argv,stderr
+from string import Template
 
 
 cgitb.enable()
@@ -20,22 +21,13 @@ class Dcms():
 		self.processUrl()
 		self.loadNavigation()
 
-		print "Content-type: text/html; charset=UTF-8"
-		print ""
-		print """ <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
-<html xmlns="http://www.w3.org/1999/xhtml">
-	<head>
-		<link rel="stylesheet" type="text/css" href="/style.css" />
-		<title>Deaddy.net</title>
-	</head>
-	<body>
-"""
-		print "<div class=\"navigation\">", self.navigation, "</div>"
-		print "<div class=\"main\">", self.content, "</div>"
-		print """
-</body></html>
-"""
+		self.mapping = { 
+				'navigation'	: self.navigation,
+				'content'		: self.content,
+				'description'	: self.description,
+				'url'				: self.url
+				}
+		print self.template.safe_substitute(self.mapping)
 
 	def processUrl(self):
 		self.arguments = self.path.strip("/").split("/")
@@ -44,12 +36,22 @@ class Dcms():
 			self.content = "fuuu"
 			if self.plugins.has_key(self.arguments[0].lower()):
 				c = self.plugins[self.arguments[0].lower()](self.arguments[1:])
-				self.content = c.getContent()
 
 		else:
 			c = self.plugins[self.default_plugin]()
-			self.content = c.getContent()
 
+		self.content = c.getContent()
+		self.content_type = c.getContentType()
+		self.description = c.getDescription()
+		self.url = self.arguments[0].lower()
+
+		if self.content_type == 'rss':
+			tmpl_path = 'rss.tmpl'
+		else:
+			tmpl_path = 'main.tmpl'
+
+		with open(tmpl_path, 'r') as f:
+			self.template = Template(f.read())
 
 
 	def loadPlugins(self):
@@ -89,6 +91,8 @@ class RstParser():
 				("\s_([^\_]+)_([^\w])", self.__italic),
 				("\n(\.p)", self.__paragraph),
 				("(\np\.)", self.__paragraph),
+				("\n(\.code)", self.__code),
+				("(\ncode\.)", self.__code),
 				("img:\"([^\"]+)\"", self.__img),
 		]
 
@@ -118,14 +122,26 @@ class RstParser():
 		else:
 			return "\n</p>"
 
+	def __code(self, m):
+		if m.group(1) == ".code":
+			return "<pre><code>"
+		else:
+			return "\n</code></pre>\n"
+
 class Plugin():
 	name = None
 	text = None
+	content_type = "html"
 	datadir = dataDir
+	description = ""
 
 	def __init__(self, args=[]): pass
+
+	def getContentType(self): return self.content_type
 	
 	def getContent(self): return self.text
+
+	def getDescription(self): return self.description
 
 if __name__=="__main__":
 	cms = Dcms()

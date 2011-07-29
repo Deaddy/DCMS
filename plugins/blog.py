@@ -1,9 +1,13 @@
 #!/usr/bin/python
 
 from dcms import Plugin, RstParser
+from string import Template
 
 class Blog(Plugin):
 	name = "Blog"
+	descripton = """
+A small blog about system administration, code and mathematics.
+"""
 	text = ""
 	page_limit = 2
 
@@ -22,16 +26,24 @@ class Blog(Plugin):
 
 	def populate_posts(self, fp):
 		temppost = False	
+		content_type = ''
 		i = 0
 		for line in fp:
 			if line.startswith(":title"):
+				content_type = ''
 				if temppost:
 					self.posts.insert(0,temppost)
 				i += 1
-				temppost = Post(i, line[7:])
-				temppost.content += line
-			elif temppost:
-				temppost.content += line
+				temppost = Post(pid=i, title = line[7:])
+				temppost.text += "\n"
+			if temppost and line.startswith(":date"):
+				temppost.date = line[6:]
+			if line.startswith(":abstract"):
+				content_type = 'abstract'
+			elif line.startswith(":text"):
+				content_type = "text"
+			elif temppost and content_type:
+				temppost.__dict__[content_type] += line
 
 		if temppost:
 			self.posts.insert(0,temppost)
@@ -57,8 +69,41 @@ class Blog(Plugin):
 				self.show_pages()
 		elif args[0] == "all":
 			self.show_toc()
+		elif args[0] == "rss.xml":
+			self.content_type = 'rss'
+			self.show_rss()
 		else:
 			self.show_pages()
+
+	def show_rss(self):
+		item_template_string = """
+	<item>
+		<title>${title}</title>
+		<link>${url}</link>
+		<guid>${url}</guid>
+		<pubDate>${date}</pubDate>
+		<description>
+		${abstract}
+		</description>
+	</item>
+"""
+		item_template = Template(item_template_string)
+		items = []
+		i = 1
+		for post in self.posts:
+			post_dict = {}
+			post_dict['title'] = post.title
+			post_dict['abstract'] = post.abstract
+			post_dict['date'] = post.date
+			post_dict['url'] = "http://deaddy.net/blog/id/" + str(i)
+			item_text = item_template.safe_substitute(post_dict)
+			items.append(item_text)
+			i += 1
+
+		self.text += "\n".join(reversed(items))
+
+		
+
 
 	def show_pages(self, p=1):
 			rst = RstParser()
@@ -67,7 +112,8 @@ class Blog(Plugin):
 			last = p*self.page_limit
 			for post in reversed(self.posts):
 				if first <= i and i < last:
-					self.text += rst.parse(post.content)
+					self.text += '<h2>' + post.title + '</h2>\n'
+					self.text += rst.parse(post.text)
 				else:
 					pass
 				i += 1
@@ -98,6 +144,7 @@ class Blog(Plugin):
 				self.text += '">&gt;&gt;</a></li>'
 
 			self.text += '<li><a href="/blog/all">all posts</a></li>'
+			self.text += '<li><a href="/blog/rss.xml">rss</a></li>'
 			self.text += """</ul></div>"""
 
 	def show_post(self, pid):
@@ -107,18 +154,20 @@ class Blog(Plugin):
 			self.show_pages()
 			return
 
-		self.text += rst.parse(self.posts[pid-1].content)
+		self.text += "<h2>" +self.posts[pid-1].title + "</h2>\n"
+		self.text += rst.parse(self.posts[pid-1].text)
 		self.text += """<div class="pages"><ul>"""
 
 		if pid > 1:
 			self.text += '<li><a href="/blog/id/1">&lt;&lt;</a>'
-			self.text += '<li><a href="/blog/id/' + str(pid) + '">&lt;</a>'
+			self.text += '<li><a href="/blog/id/' + str(pid-1) + '">&lt;</a>'
 
-		if pid <= len(self.posts):
+		if pid < len(self.posts):
 			self.text += '<li><a href="/blog/id/' + str(pid+1) + '">&gt;</a>'
-			self.text += '<li><a href="/blog/id/' + str(len(self.posts)+1) + '">&gt;&gt;</a>'
+			self.text += '<li><a href="/blog/id/' + str(len(self.posts)) + '">&gt;&gt;</a>'
 
 		self.text += '<li><a href="/blog/all">all posts</a></li>'
+		self.text += '<li><a href="/blog/rss.xml">rss</a></li>'
 		self.text += """</ul></div>"""
 
 	def show_toc(self):
@@ -132,13 +181,18 @@ class Blog(Plugin):
 			i += 1
 
 		self.text += '</ol>'
+		self.text += """<div class="pages"><a href="/blog/rss.xml">rss</a></div>"""
 
 class Post:
 	title = ""
-	content = ""
+	text = ""
 	pid = ""
+	abstract = ""
+	date = ""
 
-	def __init__(self, pid, title, content=""):
+	def __init__(self, pid, title, text="", abstract="", date=""):
 		self.pid = pid
 		self.title = title
-		self.content = content
+		self.text = text
+		self.abstract = abstract
+		self.date = date
