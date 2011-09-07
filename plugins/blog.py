@@ -76,6 +76,7 @@ A small blog about system administration, code and mathematics.
 			self.show_pages()
 
 	def show_rss(self):
+		rst = RstParser()
 		item_template_string = """
 	<item>
 		<title>${title}</title>
@@ -83,7 +84,7 @@ A small blog about system administration, code and mathematics.
 		<guid>${url}</guid>
 		<pubDate>${date}</pubDate>
 		<description>
-		${abstract}
+		${text}
 		</description>
 	</item>
 """
@@ -93,7 +94,9 @@ A small blog about system administration, code and mathematics.
 		for post in self.posts:
 			post_dict = {}
 			post_dict['title'] = post.title
-			post_dict['abstract'] = post.abstract
+#			post_dict['text'] = rst.parse(post.text).replace("&rdquo;",
+#					"&quot;").replace("&ldquo;", "&quot;")
+			post_dict['text'] = post.abstract
 			post_dict['date'] = post.date
 			post_dict['url'] = "http://deaddy.net/blog/id/" + str(i)
 			item_text = item_template.safe_substitute(post_dict)

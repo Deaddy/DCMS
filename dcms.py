@@ -88,7 +88,8 @@ class RstParser():
 				(":title\s*([^\n]*)", self.__title),
 				(":date\s*([^\n]*)", self.__date),
 				("\"([^\"]+)\":\"([^\"]+)\"", self.__link),
-				("\s_([^\_]+)_([^\w])", self.__italic),
+				("(?<![ \t])[ \n]_([^_]+)_([^\w])", self.__italic),
+				#("[^ ][ \n]_([^\_]+)_([^\w])", self.__italic),
 				("\n(\.p)", self.__paragraph),
 				("(\np\.)", self.__paragraph),
 				("\n(\.code)", self.__code),
@@ -115,6 +116,9 @@ class RstParser():
 
 	def __italic(self, m):
 		return " <i>" + m.group(1) + "</i>" + m.group(2)
+
+	def __underscore(self, m):
+		return "_"
 
 	def __paragraph(self, m):
 		if m.group(1) == ".p":
